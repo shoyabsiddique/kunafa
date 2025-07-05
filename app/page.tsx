@@ -146,6 +146,45 @@ export default function ChocolateCarousel() {
   const [isPaused, setIsPaused] = useState(false)
   const [showingInfo, setShowingInfo] = useState(false)
   const [pausedChocolates, setPausedChocolates] = useState<Set<number>>(new Set())
+  
+  // Initialize with default values to prevent hydration mismatch
+  const [radius, setRadius] = useState(400)
+  const [centerX, setCenterX] = useState(400)
+  const [centerY, setCenterY] = useState(-120)
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Update responsive values after component mounts
+  useEffect(() => {
+    setIsMounted(true)
+    
+    const updateResponsiveValues = () => {
+      const width = window.innerWidth
+      const height = window.innerHeight
+
+      // Adjust radius based on screen size
+      let newRadius = 300 // Base radius for mobile
+      if (width >= 768) newRadius = 350 // Tablet
+      if (width >= 1024) newRadius = 400 // Desktop
+      if (width >= 1440) newRadius = 450 // Large desktop
+
+      // Center the carousel horizontally and move it up so products appear in center screen
+      const newCenterX = width < 1024 ? width / 2 : (width * 0.6) / 2 // Account for sidebar on desktop
+      const newCenterY = -newRadius * 0.3 // Move the center point way up so the bottom arc (products) appear in screen center
+
+      setRadius(newRadius)
+      setCenterX(newCenterX)
+      setCenterY(newCenterY)
+    }
+
+    updateResponsiveValues()
+    
+    const handleResize = () => {
+      updateResponsiveValues()
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -190,31 +229,6 @@ export default function ChocolateCarousel() {
 
     return () => clearInterval(interval)
   }, [isPaused, pausedChocolates])
-
-  // Responsive radius and center positioning - moved up significantly
-  const getResponsiveValues = () => {
-    if (typeof window !== "undefined") {
-      const width = window.innerWidth
-      const height = window.innerHeight
-
-      // Adjust radius based on screen size
-      let radius = 300 // Base radius for mobile
-      if (width >= 768) radius = 350 // Tablet
-      if (width >= 1024) radius = 400 // Desktop
-      if (width >= 1440) radius = 450 // Large desktop
-
-      // Center the carousel horizontally and move it up so products appear in center screen
-      const centerX = width < 1024 ? width / 2 : (width * 0.6) / 2 // Account for sidebar on desktop
-      const centerY = -radius * 0.3 // Move the center point way up so the bottom arc (products) appear in screen center
-
-      return { radius, centerX, centerY }
-    }
-
-    // Default values for SSR
-    return { radius: 400, centerX: 400, centerY: -120 }
-  }
-
-  const { radius, centerX, centerY } = getResponsiveValues()
 
   const getItemPosition = (index: number, totalItems: number) => {
     const angle = (rotation + (index * 360) / totalItems) * (Math.PI / 180)
@@ -287,17 +301,16 @@ export default function ChocolateCarousel() {
 
                 if (!isVisible) return null
 
-                // Responsive item size
-                const itemSize =
-                  typeof window !== "undefined" && window.innerWidth < 768 ? "w-32 h-32" : "w-40 h-40 lg:w-48 lg:h-48"
+                // Responsive item size - use state to prevent hydration mismatch
+                const itemSize = isMounted && window.innerWidth < 768 ? "w-32 h-32" : "w-40 h-40 lg:w-48 lg:h-48"
 
                 return (
                   <motion.div
                     key={chocolate.id}
                     className="absolute cursor-pointer"
                     style={{
-                      left: position.x - (typeof window !== "undefined" && window.innerWidth < 768 ? 64 : 96),
-                      top: position.y - (typeof window !== "undefined" && window.innerWidth < 768 ? 64 : 96),
+                      left: position.x - (isMounted && window.innerWidth < 768 ? 64 : 96),
+                      top: position.y - (isMounted && window.innerWidth < 768 ? 64 : 96),
                       zIndex: position.zIndex,
                     }}
                     animate={{
@@ -388,7 +401,7 @@ export default function ChocolateCarousel() {
                 exit={{ opacity: 0, y: -50, scale: 0.8 }}
                 transition={{ duration: 0.5 }}
                 className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-50"
-                style={{ left: typeof window !== "undefined" && window.innerWidth >= 1024 ? "30%" : "50%" }}
+                style={{ left: isMounted && window.innerWidth >= 1024 ? "30%" : "50%" }}
               >
                 <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl max-w-md border-4 border-amber-200 mx-4">
                   <Badge variant="secondary" className="mb-3 text-sm bg-amber-100 text-amber-800 border border-amber-300">
