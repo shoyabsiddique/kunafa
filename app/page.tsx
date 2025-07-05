@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, Menu, Play, ShoppingBag, Utensils, Wine, Bookmark, User, Mic, ThumbsDown, Heart, Star, Award, Clock, MapPin, Phone, Mail, Instagram, Facebook, Twitter, ChefHat, Sparkles } from "lucide-react"
+import { Search, Menu, Play, ShoppingBag, Star, Award, Clock, MapPin, Phone, Mail, Instagram, Facebook, Twitter, ChefHat, Sparkles, Heart, ThumbsDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -162,14 +162,15 @@ export default function ChocolateCarousel() {
       const height = window.innerHeight
 
       // Adjust radius based on screen size
-      let newRadius = 300 // Base radius for mobile
+      let newRadius = 250 // Smaller base radius for mobile
+      if (width >= 640) newRadius = 300 // Small screens
       if (width >= 768) newRadius = 350 // Tablet
       if (width >= 1024) newRadius = 400 // Desktop
       if (width >= 1440) newRadius = 450 // Large desktop
 
       // Center the carousel horizontally and move it up so products appear in center screen
       const newCenterX = width < 1024 ? width / 2 : (width * 0.6) / 2 // Account for sidebar on desktop
-      const newCenterY = -newRadius * 0.3 // Move the center point way up so the bottom arc (products) appear in screen center
+      const newCenterY = width < 640 ? -newRadius * 0.2 : -newRadius * 0.3 // Less offset on mobile
 
       setRadius(newRadius)
       setCenterX(newCenterX)
@@ -262,19 +263,19 @@ export default function ChocolateCarousel() {
 
       {/* Header */}
       <header className="relative z-50 flex items-center justify-between p-4 lg:p-6 bg-white/80 backdrop-blur-sm border-b border-amber-200/50">
-        <div className="flex items-center space-x-4">
-          <div className="text-3xl lg:text-4xl">🍫</div>
+        <div className="flex items-center space-x-3 lg:space-x-4">
+          <div className="text-2xl lg:text-3xl xl:text-4xl">🍫</div>
           <div>
-            <div className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-amber-800 to-orange-800 bg-clip-text text-transparent">ChocolateHaven</div>
-            <div className="text-xs text-amber-700">Artisan Chocolates Since 1892</div>
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-amber-800 to-orange-800 bg-clip-text text-transparent">ChocolateHaven</div>
+            <div className="text-xs text-amber-700 hidden sm:block">Artisan Chocolates Since 1892</div>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="text-amber-800 hover:bg-amber-100">
-            <Search className="h-5 w-5" />
+        <div className="flex items-center space-x-2 lg:space-x-4">
+          <Button variant="ghost" size="icon" className="text-amber-800 hover:bg-amber-100 h-8 w-8 lg:h-10 lg:w-10">
+            <Search className="h-4 w-4 lg:h-5 lg:w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-amber-800 hover:bg-amber-100">
-            <Menu className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="text-amber-800 hover:bg-amber-100 h-8 w-8 lg:h-10 lg:w-10">
+            <Menu className="h-4 w-4 lg:h-5 lg:w-5" />
           </Button>
         </div>
       </header>
@@ -302,15 +303,34 @@ export default function ChocolateCarousel() {
                 if (!isVisible) return null
 
                 // Responsive item size - use state to prevent hydration mismatch
-                const itemSize = isMounted && window.innerWidth < 768 ? "w-32 h-32" : "w-40 h-40 lg:w-48 lg:h-48"
+                const getItemSize = () => {
+                  if (!isMounted) return "w-32 h-32"
+                  const width = window.innerWidth
+                  if (width < 640) return "w-24 h-24"
+                  if (width < 768) return "w-32 h-32"
+                  if (width < 1024) return "w-36 h-36"
+                  return "w-40 h-40 lg:w-48 lg:h-48"
+                }
+
+                const getOffset = () => {
+                  if (!isMounted) return 64
+                  const width = window.innerWidth
+                  if (width < 640) return 48
+                  if (width < 768) return 64
+                  if (width < 1024) return 72
+                  return 96
+                }
+
+                const itemSize = getItemSize()
+                const offset = getOffset()
 
                 return (
                   <motion.div
                     key={chocolate.id}
                     className="absolute cursor-pointer"
                     style={{
-                      left: position.x - (isMounted && window.innerWidth < 768 ? 64 : 96),
-                      top: position.y - (isMounted && window.innerWidth < 768 ? 64 : 96),
+                      left: position.x - offset,
+                      top: position.y - offset,
                       zIndex: position.zIndex,
                     }}
                     animate={{
@@ -323,9 +343,9 @@ export default function ChocolateCarousel() {
                     whileTap={{ scale: position.scale * 0.95 }}
                   >
                     <div
-                      className={`relative ${itemSize} rounded-full overflow-hidden shadow-2xl border-4 border-white bg-gradient-to-br ${chocolate.color} p-2 ${
-                        isCurrentlyPaused ? "ring-4 ring-yellow-400 ring-opacity-80 shadow-yellow-400/60" : ""
-                      } ${isAtPausePosition && !isPaused ? "ring-2 ring-amber-300 ring-opacity-60" : ""}`}
+                      className={`relative ${itemSize} rounded-full overflow-hidden shadow-2xl border-2 lg:border-4 border-white bg-gradient-to-br ${chocolate.color} p-1 lg:p-2 ${
+                        isCurrentlyPaused ? "ring-2 lg:ring-4 ring-yellow-400 ring-opacity-80 shadow-yellow-400/60" : ""
+                      } ${isAtPausePosition && !isPaused ? "ring-1 lg:ring-2 ring-amber-300 ring-opacity-60" : ""}`}
                     >
                       <div className="w-full h-full rounded-full overflow-hidden bg-white shadow-inner">
                         <Image
@@ -341,10 +361,10 @@ export default function ChocolateCarousel() {
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="absolute -top-2 -right-2 bg-white rounded-full p-2 shadow-lg border-2 border-amber-200"
+                          className="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 bg-white rounded-full p-1 lg:p-2 shadow-lg border border-amber-200"
                         >
                           <div
-                            className={`w-8 h-8 rounded-full bg-gradient-to-r ${chocolate.color} flex items-center justify-center text-white font-bold text-sm shadow-lg`}
+                            className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-gradient-to-r ${chocolate.color} flex items-center justify-center text-white font-bold text-xs lg:text-sm shadow-lg`}
                           >
                             {chocolate.rating}
                           </div>
@@ -358,9 +378,9 @@ export default function ChocolateCarousel() {
                           animate={{ scale: 1, opacity: 1 }}
                           className="absolute inset-0 bg-amber-900/30 rounded-full flex items-center justify-center"
                         >
-                          <div className="w-16 h-16 border-4 border-white rounded-full flex items-center justify-center">
+                          <div className="w-12 h-12 lg:w-16 lg:h-16 border-2 lg:border-4 border-white rounded-full flex items-center justify-center">
                             <motion.div
-                              className="w-12 h-12 border-4 border-white border-t-transparent rounded-full"
+                              className="w-8 h-8 lg:w-12 lg:h-12 border-2 lg:border-4 border-white border-t-transparent rounded-full"
                               animate={{ rotate: 360 }}
                               transition={{ duration: 3, ease: "linear" }}
                             />
@@ -371,14 +391,14 @@ export default function ChocolateCarousel() {
 
                     {/* Chocolate Name Label */}
                     <motion.div
-                      className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center w-32"
+                      className="absolute -bottom-8 lg:-bottom-12 left-1/2 transform -translate-x-1/2 text-center w-24 lg:w-32"
                       animate={{
                         opacity: position.scale > 0.7 ? 1 : 0,
                         scale: isCurrentlyPaused ? 1.1 : 1,
                       }}
                     >
                       <p
-                        className={`text-sm font-bold text-center ${isCurrentlyPaused ? "text-amber-800" : "text-amber-700"}`}
+                        className={`text-xs lg:text-sm font-bold text-center ${isCurrentlyPaused ? "text-amber-800" : "text-amber-700"}`}
                       >
                         {chocolate.name}
                       </p>
@@ -403,15 +423,15 @@ export default function ChocolateCarousel() {
                 className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-50"
                 style={{ left: isMounted && window.innerWidth >= 1024 ? "30%" : "50%" }}
               >
-                <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl max-w-md border-4 border-amber-200 mx-4">
-                  <Badge variant="secondary" className="mb-3 text-sm bg-amber-100 text-amber-800 border border-amber-300">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl max-w-xs lg:max-w-md border-2 lg:border-4 border-amber-200 mx-4">
+                  <Badge variant="secondary" className="mb-2 lg:mb-3 text-xs lg:text-sm bg-amber-100 text-amber-800 border border-amber-300">
                     {displayChocolate.rank}
                   </Badge>
                   <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-3xl font-light text-amber-900 mb-2"
+                    className="text-xl lg:text-3xl font-light text-amber-900 mb-1 lg:mb-2"
                   >
                     {displayChocolate.name}
                   </motion.h1>
@@ -419,7 +439,7 @@ export default function ChocolateCarousel() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-2xl font-bold text-amber-800 mb-4"
+                    className="text-lg lg:text-2xl font-bold text-amber-800 mb-3 lg:mb-4"
                   >
                     {displayChocolate.subtitle}
                   </motion.h2>
@@ -428,30 +448,30 @@ export default function ChocolateCarousel() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-4"
+                    className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-3 lg:mb-4"
                   >
-                    <Button className="flex items-center space-x-2 bg-amber-800 hover:bg-amber-900 text-white">
-                      <Play className="h-4 w-4" />
+                    <Button className="flex items-center space-x-2 bg-amber-800 hover:bg-amber-900 text-white text-sm lg:text-base">
+                      <Play className="h-3 w-3 lg:h-4 lg:w-4" />
                       <span>Watch Recipe</span>
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex items-center space-x-2 border-amber-800 text-amber-800 hover:bg-amber-100"
+                      className="flex items-center space-x-2 border-amber-800 text-amber-800 hover:bg-amber-100 text-sm lg:text-base"
                     >
-                      <ShoppingBag className="h-4 w-4" />
+                      <ShoppingBag className="h-3 w-3 lg:h-4 lg:w-4" />
                       <span>{displayChocolate.price}</span>
                     </Button>
                   </motion.div>
 
                   {/* Progress indicator */}
                   <motion.div
-                    className="w-full bg-amber-200 rounded-full h-2 mt-4"
+                    className="w-full bg-amber-200 rounded-full h-1 lg:h-2 mt-3 lg:mt-4"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                   >
                     <motion.div
-                      className={`bg-gradient-to-r ${displayChocolate.color} h-2 rounded-full`}
+                      className={`bg-gradient-to-r ${displayChocolate.color} h-1 lg:h-2 rounded-full`}
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
                       transition={{ duration: 3, ease: "linear" }}
@@ -463,12 +483,12 @@ export default function ChocolateCarousel() {
           </AnimatePresence>
 
           {/* Bottom Menu Carousel */}
-          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-40">
-            <div className="flex items-center space-x-4 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-amber-200">
+          <div className="absolute bottom-4 lg:bottom-20 left-1/2 transform -translate-x-1/2 z-40">
+            <div className="flex items-center space-x-2 lg:space-x-4 bg-white/90 backdrop-blur-sm rounded-xl lg:rounded-2xl p-2 lg:p-4 shadow-lg border border-amber-200">
               {menuItems.map((item, index) => (
                 <motion.div
                   key={index}
-                  className={`flex-shrink-0 text-center cursor-pointer p-3 rounded-lg transition-all ${
+                  className={`flex-shrink-0 text-center cursor-pointer p-2 lg:p-3 rounded-lg transition-all ${
                     index === currentChocolateIndex % menuItems.length
                       ? "bg-amber-100 shadow-md scale-105 border border-amber-300"
                       : "hover:bg-amber-50"
@@ -477,7 +497,7 @@ export default function ChocolateCarousel() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-1 border-2 border-amber-300">
+                  <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-full overflow-hidden mx-auto mb-1 border border-amber-300">
                     <Image
                       src={item.image || "/placeholder.svg"}
                       alt={item.name}
@@ -564,34 +584,34 @@ export default function ChocolateCarousel() {
       </div>
 
       {/* About Section */}
-      <section className="relative z-20 py-20 bg-gradient-to-r from-amber-100 to-orange-100">
-        <div className="container mx-auto px-6">
+      <section className="relative z-20 py-12 lg:py-20 bg-gradient-to-r from-amber-100 to-orange-100">
+        <div className="container mx-auto px-4 lg:px-6">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-12 lg:mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-amber-900 mb-6">Our Story</h2>
-            <p className="text-xl text-amber-800 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-amber-900 mb-4 lg:mb-6">Our Story</h2>
+            <p className="text-lg lg:text-xl text-amber-800 max-w-3xl mx-auto leading-relaxed px-4">
               Since 1892, ChocolateHaven has been crafting the world's finest artisan chocolates. 
               Our master chocolatiers combine traditional techniques with innovative flavors to create 
               unforgettable experiences in every bite.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
               className="text-center"
             >
-              <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Award className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6">
+                <Award className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-amber-900 mb-4">Award Winning</h3>
-              <p className="text-amber-700">
+              <h3 className="text-xl lg:text-2xl font-bold text-amber-900 mb-3 lg:mb-4">Award Winning</h3>
+              <p className="text-amber-700 px-4">
                 Recognized globally for our exceptional quality and innovative chocolate creations.
               </p>
             </motion.div>
@@ -602,11 +622,11 @@ export default function ChocolateCarousel() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-center"
             >
-              <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Sparkles className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6">
+                <Sparkles className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-amber-900 mb-4">Handcrafted</h3>
-              <p className="text-amber-700">
+              <h3 className="text-xl lg:text-2xl font-bold text-amber-900 mb-3 lg:mb-4">Handcrafted</h3>
+              <p className="text-amber-700 px-4">
                 Every chocolate is meticulously handcrafted by our master chocolatiers with passion and precision.
               </p>
             </motion.div>
@@ -615,13 +635,13 @@ export default function ChocolateCarousel() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-center"
+              className="text-center sm:col-span-2 lg:col-span-1"
             >
-              <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Heart className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6">
+                <Heart className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-amber-900 mb-4">Sustainable</h3>
-              <p className="text-amber-700">
+              <h3 className="text-xl lg:text-2xl font-bold text-amber-900 mb-3 lg:mb-4">Sustainable</h3>
+              <p className="text-amber-700 px-4">
                 Committed to ethical sourcing and sustainable practices that benefit cocoa farmers worldwide.
               </p>
             </motion.div>
@@ -630,21 +650,21 @@ export default function ChocolateCarousel() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="relative z-20 py-20 bg-white">
-        <div className="container mx-auto px-6">
+      <section className="relative z-20 py-12 lg:py-20 bg-white">
+        <div className="container mx-auto px-4 lg:px-6">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-12 lg:mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-amber-900 mb-6">What Our Customers Say</h2>
-            <p className="text-xl text-amber-800 max-w-2xl mx-auto">
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-amber-900 mb-4 lg:mb-6">What Our Customers Say</h2>
+            <p className="text-lg lg:text-xl text-amber-800 max-w-2xl mx-auto px-4">
               Don't just take our word for it - hear from chocolate lovers around the world.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {testimonials.map((testimonial, index) => (
               <motion.div
                 key={testimonial.id}
@@ -653,15 +673,15 @@ export default function ChocolateCarousel() {
                 transition={{ duration: 0.8, delay: index * 0.1 }}
               >
                 <Card className="h-full border-amber-200 hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 lg:p-6">
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                        <Star key={i} className="w-4 h-4 lg:w-5 lg:h-5 fill-yellow-400 text-yellow-400" />
                       ))}
                     </div>
-                    <p className="text-amber-800 mb-6 italic">"{testimonial.content}"</p>
+                    <p className="text-amber-800 mb-4 lg:mb-6 italic text-sm lg:text-base">"{testimonial.content}"</p>
                     <div className="flex items-center">
-                      <div className="w-12 h-12 rounded-full overflow-hidden mr-4 border-2 border-amber-200">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden mr-3 lg:mr-4 border-2 border-amber-200">
                         <Image
                           src={testimonial.image}
                           alt={testimonial.name}
@@ -671,8 +691,8 @@ export default function ChocolateCarousel() {
                         />
                       </div>
                       <div>
-                        <h4 className="font-bold text-amber-900">{testimonial.name}</h4>
-                        <p className="text-sm text-amber-700">{testimonial.role}</p>
+                        <h4 className="font-bold text-amber-900 text-sm lg:text-base">{testimonial.name}</h4>
+                        <p className="text-xs lg:text-sm text-amber-700">{testimonial.role}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -684,21 +704,21 @@ export default function ChocolateCarousel() {
       </section>
 
       {/* Awards Section */}
-      <section className="relative z-20 py-20 bg-gradient-to-r from-amber-50 to-orange-50">
-        <div className="container mx-auto px-6">
+      <section className="relative z-20 py-12 lg:py-20 bg-gradient-to-r from-amber-50 to-orange-50">
+        <div className="container mx-auto px-4 lg:px-6">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-12 lg:mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-amber-900 mb-6">Awards & Recognition</h2>
-            <p className="text-xl text-amber-800 max-w-2xl mx-auto">
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-amber-900 mb-4 lg:mb-6">Awards & Recognition</h2>
+            <p className="text-lg lg:text-xl text-amber-800 max-w-2xl mx-auto px-4">
               Our commitment to excellence has been recognized by prestigious organizations worldwide.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {awards.map((award, index) => (
               <motion.div
                 key={index}
@@ -707,13 +727,13 @@ export default function ChocolateCarousel() {
                 transition={{ duration: 0.8, delay: index * 0.1 }}
               >
                 <Card className="text-center border-amber-200 hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Award className="w-8 h-8 text-white" />
+                  <CardContent className="p-4 lg:p-6">
+                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 lg:mb-4">
+                      <Award className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
                     </div>
-                    <h3 className="font-bold text-amber-900 mb-2">{award.year}</h3>
-                    <h4 className="text-lg font-semibold text-amber-800 mb-2">{award.title}</h4>
-                    <p className="text-sm text-amber-700">{award.organization}</p>
+                    <h3 className="font-bold text-amber-900 mb-2 text-sm lg:text-base">{award.year}</h3>
+                    <h4 className="text-base lg:text-lg font-semibold text-amber-800 mb-2">{award.title}</h4>
+                    <p className="text-xs lg:text-sm text-amber-700">{award.organization}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -723,62 +743,62 @@ export default function ChocolateCarousel() {
       </section>
 
       {/* Contact Section */}
-      <section className="relative z-20 py-20 bg-gradient-to-r from-amber-900 to-orange-900 text-white">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12">
+      <section className="relative z-20 py-12 lg:py-20 bg-gradient-to-r from-amber-900 to-orange-900 text-white">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6">Get in Touch</h2>
-              <p className="text-xl text-amber-100 mb-8">
+              <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 lg:mb-6">Get in Touch</h2>
+              <p className="text-lg lg:text-xl text-amber-100 mb-6 lg:mb-8">
                 Visit our flagship store or contact us to learn more about our artisan chocolates.
               </p>
 
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <MapPin className="w-6 h-6 text-amber-300" />
+              <div className="space-y-4 lg:space-y-6">
+                <div className="flex items-center space-x-3 lg:space-x-4">
+                  <MapPin className="w-5 h-5 lg:w-6 lg:h-6 text-amber-300 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-amber-100">Address</h3>
-                    <p className="text-amber-200">123 Chocolate Avenue, Sweet City, SC 12345</p>
+                    <h3 className="font-semibold text-amber-100 text-sm lg:text-base">Address</h3>
+                    <p className="text-amber-200 text-sm lg:text-base">123 Chocolate Avenue, Sweet City, SC 12345</p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <Phone className="w-6 h-6 text-amber-300" />
+                <div className="flex items-center space-x-3 lg:space-x-4">
+                  <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-amber-300 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-amber-100">Phone</h3>
-                    <p className="text-amber-200">+1 (555) 123-CHOC</p>
+                    <h3 className="font-semibold text-amber-100 text-sm lg:text-base">Phone</h3>
+                    <p className="text-amber-200 text-sm lg:text-base">+1 (555) 123-CHOC</p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <Mail className="w-6 h-6 text-amber-300" />
+                <div className="flex items-center space-x-3 lg:space-x-4">
+                  <Mail className="w-5 h-5 lg:w-6 lg:h-6 text-amber-300 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-amber-100">Email</h3>
-                    <p className="text-amber-200">hello@chocolatehaven.com</p>
+                    <h3 className="font-semibold text-amber-100 text-sm lg:text-base">Email</h3>
+                    <p className="text-amber-200 text-sm lg:text-base">hello@chocolatehaven.com</p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <Clock className="w-6 h-6 text-amber-300" />
+                <div className="flex items-center space-x-3 lg:space-x-4">
+                  <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-amber-300 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-amber-100">Hours</h3>
-                    <p className="text-amber-200">Mon-Sat: 9AM-8PM, Sun: 10AM-6PM</p>
+                    <h3 className="font-semibold text-amber-100 text-sm lg:text-base">Hours</h3>
+                    <p className="text-amber-200 text-sm lg:text-base">Mon-Sat: 9AM-8PM, Sun: 10AM-6PM</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex space-x-4 mt-8">
-                <Button variant="outline" size="icon" className="border-amber-300 text-amber-300 hover:bg-amber-300 hover:text-amber-900">
-                  <Instagram className="w-5 h-5" />
+              <div className="flex space-x-3 lg:space-x-4 mt-6 lg:mt-8">
+                <Button variant="outline" size="icon" className="border-amber-300 text-amber-300 hover:bg-amber-300 hover:text-amber-900 h-8 w-8 lg:h-10 lg:w-10">
+                  <Instagram className="w-4 h-4 lg:w-5 lg:h-5" />
                 </Button>
-                <Button variant="outline" size="icon" className="border-amber-300 text-amber-300 hover:bg-amber-300 hover:text-amber-900">
-                  <Facebook className="w-5 h-5" />
+                <Button variant="outline" size="icon" className="border-amber-300 text-amber-300 hover:bg-amber-300 hover:text-amber-900 h-8 w-8 lg:h-10 lg:w-10">
+                  <Facebook className="w-4 h-4 lg:w-5 lg:h-5" />
                 </Button>
-                <Button variant="outline" size="icon" className="border-amber-300 text-amber-300 hover:bg-amber-300 hover:text-amber-900">
-                  <Twitter className="w-5 h-5" />
+                <Button variant="outline" size="icon" className="border-amber-300 text-amber-300 hover:bg-amber-300 hover:text-amber-900 h-8 w-8 lg:h-10 lg:w-10">
+                  <Twitter className="w-4 h-4 lg:w-5 lg:h-5" />
                 </Button>
               </div>
             </motion.div>
@@ -790,20 +810,20 @@ export default function ChocolateCarousel() {
             >
               <Card className="bg-white/10 backdrop-blur-sm border-amber-300/30">
                 <CardHeader>
-                  <CardTitle className="text-white">Send us a Message</CardTitle>
-                  <CardDescription className="text-amber-200">
+                  <CardTitle className="text-white text-lg lg:text-xl">Send us a Message</CardTitle>
+                  <CardDescription className="text-amber-200 text-sm lg:text-base">
                     We'd love to hear from you. Send us a message and we'll respond as soon as possible.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="First Name" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200" />
-                    <Input placeholder="Last Name" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200" />
+                <CardContent className="space-y-3 lg:space-y-4">
+                  <div className="grid grid-cols-2 gap-3 lg:gap-4">
+                    <Input placeholder="First Name" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200 text-sm lg:text-base" />
+                    <Input placeholder="Last Name" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200 text-sm lg:text-base" />
                   </div>
-                  <Input placeholder="Email" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200" />
-                  <Input placeholder="Subject" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200" />
-                  <Textarea placeholder="Your message..." className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200 min-h-[120px]" />
-                  <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
+                  <Input placeholder="Email" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200 text-sm lg:text-base" />
+                  <Input placeholder="Subject" className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200 text-sm lg:text-base" />
+                  <Textarea placeholder="Your message..." className="bg-white/20 border-amber-300/30 text-white placeholder:text-amber-200 min-h-[100px] lg:min-h-[120px] text-sm lg:text-base" />
+                  <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white text-sm lg:text-base">
                     Send Message
                   </Button>
                 </CardContent>
@@ -814,13 +834,13 @@ export default function ChocolateCarousel() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-20 bg-amber-950 text-amber-100 py-12">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className="relative z-20 bg-amber-950 text-amber-100 py-8 lg:py-12">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="text-2xl">🍫</div>
-                <div className="text-xl font-bold">ChocolateHaven</div>
+              <div className="flex items-center space-x-2 mb-3 lg:mb-4">
+                <div className="text-xl lg:text-2xl">🍫</div>
+                <div className="text-lg lg:text-xl font-bold">ChocolateHaven</div>
               </div>
               <p className="text-amber-300 text-sm">
                 Crafting the world's finest artisan chocolates since 1892.
@@ -828,8 +848,8 @@ export default function ChocolateCarousel() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-sm">
+              <h3 className="font-bold mb-3 lg:mb-4 text-sm lg:text-base">Quick Links</h3>
+              <ul className="space-y-1 lg:space-y-2 text-xs lg:text-sm">
                 <li><a href="#" className="text-amber-300 hover:text-white transition-colors">About Us</a></li>
                 <li><a href="#" className="text-amber-300 hover:text-white transition-colors">Our Chocolates</a></li>
                 <li><a href="#" className="text-amber-300 hover:text-white transition-colors">Gift Sets</a></li>
@@ -838,8 +858,8 @@ export default function ChocolateCarousel() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Customer Care</h3>
-              <ul className="space-y-2 text-sm">
+              <h3 className="font-bold mb-3 lg:mb-4 text-sm lg:text-base">Customer Care</h3>
+              <ul className="space-y-1 lg:space-y-2 text-xs lg:text-sm">
                 <li><a href="#" className="text-amber-300 hover:text-white transition-colors">Contact Us</a></li>
                 <li><a href="#" className="text-amber-300 hover:text-white transition-colors">Shipping Info</a></li>
                 <li><a href="#" className="text-amber-300 hover:text-white transition-colors">Returns</a></li>
@@ -848,41 +868,22 @@ export default function ChocolateCarousel() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Newsletter</h3>
-              <p className="text-amber-300 text-sm mb-4">
+              <h3 className="font-bold mb-3 lg:mb-4 text-sm lg:text-base">Newsletter</h3>
+              <p className="text-amber-300 text-xs lg:text-sm mb-3 lg:mb-4">
                 Subscribe to get updates on new flavors and special offers.
               </p>
-              <div className="flex space-x-2">
-                <Input placeholder="Your email" className="bg-amber-900/50 border-amber-700 text-white placeholder:text-amber-400" />
-                <Button className="bg-amber-600 hover:bg-amber-700">Subscribe</Button>
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <Input placeholder="Your email" className="bg-amber-900/50 border-amber-700 text-white placeholder:text-amber-400 text-xs lg:text-sm" />
+                <Button className="bg-amber-600 hover:bg-amber-700 text-xs lg:text-sm px-3 lg:px-4">Subscribe</Button>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-amber-800 mt-8 pt-8 text-center text-sm text-amber-400">
+          <div className="border-t border-amber-800 mt-6 lg:mt-8 pt-6 lg:pt-8 text-center text-xs lg:text-sm text-amber-400">
             <p>&copy; 2024 ChocolateHaven. All rights reserved. | Privacy Policy | Terms of Service</p>
           </div>
         </div>
       </footer>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center space-x-8 p-6 bg-white/90 backdrop-blur-sm border-t border-amber-200">
-        <Button variant="ghost" size="icon" className="text-amber-900 hover:bg-amber-100">
-          <Utensils className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-amber-900 hover:bg-amber-100">
-          <Wine className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-amber-900 hover:bg-amber-100">
-          <Bookmark className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-amber-900 hover:bg-amber-100">
-          <User className="h-6 w-6" />
-        </Button>
-        <Button size="icon" className="rounded-full bg-amber-800 hover:bg-amber-900 shadow-lg text-white">
-          <Mic className="h-6 w-6" />
-        </Button>
-      </div>
     </div>
   )
 }
